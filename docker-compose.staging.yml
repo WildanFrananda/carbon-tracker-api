@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # 1. Database Service
+  db:
+    image: postgres:15-alpine
+    container_name: carbon_tracker_db_staging
+    environment:
+      POSTGRES_USER: tracker_user
+      POSTGRES_PASSWORD: tracker_pass
+      POSTGRES_DB: carbon_tracker_db
+    # Port tidak di-expose ke luar (host), hanya bisa diakses via internal Docker network
+    expose:
+      - "5432"
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - tracker_network
+
+  # 2. Rust API Backend Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: carbon_tracker_api_staging
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://tracker_user:tracker_pass@db:5432/carbon_tracker_db
+      - JWT_SECRET=super_secret_key_change_in_production
+      - ROCKET_ADDRESS=0.0.0.0
+      - ROCKET_PORT=8000
+    expose:
+      - "8000"
+    restart: unless-stopped
+    networks:
+      - tracker_network
+
+  # 3. Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: carbon_tracker_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - tracker_network
+
+volumes:
+  staging_postgres_data:
+
+networks:
+  tracker_network:
+    driver: bridge
