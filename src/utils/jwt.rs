@@ -3,6 +3,7 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation}
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::env;
 use uuid::Uuid;
 
@@ -12,10 +13,10 @@ pub struct Claims {
     pub exp: usize,
 }
 
-pub fn generate_token(user_id: Uuid) -> Result<String, Error> {
+pub fn generate_access_token(user_id: Uuid) -> Result<String, Error> {
     let secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set in .env");
     let expiration = chrono::Utc::now()
-        .checked_add_signed(chrono::Duration::days(7))
+        .checked_add_signed(chrono::Duration::hours(1))
         .expect("Valid timestamp")
         .timestamp() as usize;
 
@@ -29,6 +30,17 @@ pub fn generate_token(user_id: Uuid) -> Result<String, Error> {
         &claims,
         &EncodingKey::from_secret(secret.as_bytes()),
     )
+}
+
+pub fn generate_refresh_token() -> String {
+    return Uuid::new_v4().to_string();
+}
+
+pub fn hash_refresh_token(token: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(token.as_bytes());
+    let result = hasher.finalize();
+    return hex::encode(result);
 }
 
 #[rocket::async_trait]
@@ -54,6 +66,6 @@ impl<'r> FromRequest<'r> for Claims {
             }
         }
 
-        Outcome::Error((Status::Unauthorized, ()))
+        return Outcome::Error((Status::Unauthorized, ()));
     }
 }
