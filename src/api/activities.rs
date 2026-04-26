@@ -25,7 +25,13 @@ pub async fn log_activity(
 
     let factor = match factor {
         Some(f) => f,
-        None => return Err(ApiError::bad_request("Category or Subcategory not valid")),
+        None => {
+            return Err(ApiError::bad_request(&format!(
+                "Emission factor not found for category '{}' and subcategory '{}'. Please check your input.",
+                req.category.as_str(),
+                req.subcategory
+            )))
+        }
     };
 
     let calculated_emission = calculate_emission(req.quantity, factor.factor_value);
@@ -184,6 +190,29 @@ pub async fn delete_activity(
     return Ok(json!({ "status": "success", "message": "Activity successfully deleted" }));
 }
 
+#[derive(serde::Serialize)]
+pub struct FactorDto {
+    pub category: String,
+    pub subcategory: String,
+    pub unit: String,
+}
+
+#[get("/factors")]
+pub async fn get_factors(pool: &State<DbPool>) -> Result<Value, ApiError> {
+    let factors = sqlx::query_as!(
+        FactorDto,
+        r#"SELECT category, subcategory, unit FROM emission_factors ORDER BY category, subcategory"#
+    )
+    .fetch_all(&pool.0)
+    .await
+    .map_err(|_| ApiError::internal("Failed to fetch emission factors"))?;
+
+    return Ok(json!({
+        "status": "success",
+        "data": factors
+    }));
+}
+
 pub fn routes() -> Vec<Route> {
-    return routes![log_activity, get_activities, delete_activity];
+    return routes![log_activity, get_activities, delete_activity, get_factors];
 }

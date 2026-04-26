@@ -47,6 +47,38 @@ async fn init_db() -> Result<PgPool, Error> {
         .await;
 }
 
+#[catch(400)]
+fn bad_request() -> Value {
+    json!({
+        "status": "error",
+        "message": "Invalid request. Please check your data format and parameters."
+    })
+}
+
+#[catch(404)]
+fn not_found() -> Value {
+    json!({
+        "status": "error",
+        "message": "Resource not found."
+    })
+}
+
+#[catch(422)]
+fn unprocessable_entity() -> Value {
+    json!({
+        "status": "error",
+        "message": "Data format is invalid or missing required fields. Make sure you provided all necessary fields correctly (e.g., correct category 'transport', 'food', 'energy', 'shopping')."
+    })
+}
+
+#[catch(500)]
+fn internal_error() -> Value {
+    json!({
+        "status": "error",
+        "message": "Internal server error."
+    })
+}
+
 pub async fn build_rocket() -> Rocket<Build> {
     dotenv().ok();
 
@@ -59,6 +91,11 @@ pub async fn build_rocket() -> Rocket<Build> {
         .mount("/api/activities", api::activities::routes())
         .mount("/api/dashboard", api::dashboard::routes())
         .mount("/api/insights", api::insights::routes())
+        .mount("/api/gamification", api::gamification::routes())
+        .register(
+            "/",
+            rocket::catchers![bad_request, not_found, unprocessable_entity, internal_error],
+        )
 }
 
 #[launch]

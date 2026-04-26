@@ -1,0 +1,14 @@
+[alias]
+dev = "watch -q -c -x run"
+
+dev-verbose = "watch -x 'run -- --rocket-loglevel=debug'"
+
+lint = "clippy -- -D warnings"
+
+test-watch = "watch -q -c -x test"
+
+release = "build --release"
+
+docs = "doc --open"
+
+clean-all = "clean"
