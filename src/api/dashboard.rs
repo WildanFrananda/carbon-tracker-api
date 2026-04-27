@@ -31,7 +31,7 @@ pub async fn get_daily_summary(
     .await
     .map_err(|_| ApiError::internal("Failed to fetch daily summary"))?;
 
-    let response_data = summary.unwrap_or_else(|| DailySummaryResponse {
+    let response_data = summary.unwrap_or(DailySummaryResponse {
         date: parsed_date,
         total_emission: Decimal::ZERO,
         transport_kg: Decimal::ZERO,

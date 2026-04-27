@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT badge_type, earned_at \n        FROM achievements \n        WHERE user_id = $1\n        ORDER BY earned_at DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "badge_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "earned_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "95f8166ea400241cbbe08ce1587de2277362a4dd6b593df7dabf407e4ae3091f"
+}

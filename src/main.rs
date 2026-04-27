@@ -92,6 +92,7 @@ pub async fn build_rocket() -> Rocket<Build> {
         .mount("/api/dashboard", api::dashboard::routes())
         .mount("/api/insights", api::insights::routes())
         .mount("/api/gamification", api::gamification::routes())
+        .mount("/api/user", api::user::routes())
         .register(
             "/",
             rocket::catchers![bad_request, not_found, unprocessable_entity, internal_error],

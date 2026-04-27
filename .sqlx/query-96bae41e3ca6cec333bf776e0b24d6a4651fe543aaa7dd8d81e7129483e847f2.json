@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT factor_value, unit \n        FROM emission_factors \n        WHERE category = $1 AND subcategory = $2\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "factor_value",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 1,
+        "name": "unit",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "96bae41e3ca6cec333bf776e0b24d6a4651fe543aaa7dd8d81e7129483e847f2"
+}

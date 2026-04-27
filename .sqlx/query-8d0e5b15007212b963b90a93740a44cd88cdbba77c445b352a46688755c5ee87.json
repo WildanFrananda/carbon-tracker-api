@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT category, subcategory, unit FROM emission_factors ORDER BY category, subcategory",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "category",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "subcategory",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "unit",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "8d0e5b15007212b963b90a93740a44cd88cdbba77c445b352a46688755c5ee87"
+}

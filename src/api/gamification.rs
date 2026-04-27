@@ -33,7 +33,7 @@ pub async fn get_badges(claims: Claims, pool: &State<DbPool>) -> Result<Value, A
     )
     .fetch_all(&pool.0)
     .await
-    .map_err(|e| ApiError::internal("Failed to fetch achievements"))?;
+    .map_err(|_| ApiError::internal("Failed to fetch achievements"))?;
 
     let badges: Vec<BadgeResponse> = records
         .into_iter()

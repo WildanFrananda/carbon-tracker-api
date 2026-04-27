@@ -282,4 +282,80 @@ AI-Rules based engine. Menganalisa habit user 7 hari terakhir dan memberikan tip
 
 ---
 
+## 🏆 5. Gamification & Achievements
+
+### `GET /api/gamification/badges`
+
+Mengambil daftar badge/pencapaian yang telah didapatkan oleh user (misalnya: Streak logging, aktivitas rendah karbon).
+
+**Headers:** `Authorization: Bearer <TOKEN>`
+
+**Response `200 OK`:**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "badge_type": "FIRST_LOG",
+      "earned_at": "2026-04-18T10:00:00Z",
+      "description": "Completing the first activity log."
+    }
+  ]
+}
+```
+
+---
+
+## 👤 6. User Profile & Settings
+
+### `GET /api/user/profile`
+
+Mengambil data profil pengguna termasuk target emisi harian.
+
+**Headers:** `Authorization: Bearer <TOKEN>`
+
+**Response `200 OK`:**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "email": "user@example.com",
+    "display_name": "Wildan Frananda",
+    "daily_target_kg": 10.0
+  }
+}
+```
+
+---
+
+### `PUT /api/user/target`
+
+Memperbarui target maksimal emisi harian (`daily_target_kg`) pengguna.
+
+**Headers:** `Authorization: Bearer <TOKEN>`
+
+**Body Request:**
+
+```json
+{
+  "daily_target_kg": 8.5
+}
+```
+
+**Response `200 OK`:**
+
+```json
+{
+  "status": "success",
+  "message": "Daily target updated successfully",
+  "data": {
+    "daily_target_kg": 8.5
+  }
+}
+```
+
+---
+
 *Developed with 🦀 Rust and Rocket.*
