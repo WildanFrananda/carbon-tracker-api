@@ -133,7 +133,20 @@ Mendaftarkan akun baru.
 }
 ```
 
-**Response `200 OK`:** Mengembalikan `token` (JWT) dan `user_id`.
+**Response `200 OK`:**
+
+```json
+{
+  "status": "success",
+  "message": "User registered successfully",
+  "data": {
+    "access_token": "eyJhbGci...",
+    "refresh_token": "d7a8f9...",
+    "user_id": 1,
+    "display_name": "Wildan Frananda"
+  }
+}
+```
 
 ---
 
@@ -150,7 +163,49 @@ Masuk untuk mendapatkan token.
 }
 ```
 
-**Response `200 OK`:** Mengembalikan `token` (JWT). Simpan token ini di **Secure Storage** (iOS Keychain / Android EncryptedSharedPreferences).
+**Response `200 OK`:** Simpan `access_token` dan `refresh_token` ini di **Secure Storage** (iOS Keychain / Android EncryptedSharedPreferences).
+
+```json
+{
+  "status": "success",
+  "message": "Login successfully",
+  "data": {
+    "access_token": "eyJhbGci...",
+    "refresh_token": "d7a8f9...",
+    "user_id": 1,
+    "display_name": "Wildan Frananda"
+  }
+}
+```
+
+---
+
+### `POST /api/auth/refresh`
+
+Mendapatkan `access_token` baru menggunakan `refresh_token` ketika token utama sudah kedaluwarsa.
+
+**Body Request:**
+
+```json
+{
+  "refresh_token": "d7a8f9..."
+}
+```
+
+**Response `200 OK`:** Mengembalikan sesi token baru.
+
+```json
+{
+  "status": "success",
+  "message": "Token refreshed successfully",
+  "data": {
+    "access_token": "eyJhbGci_new...",
+    "refresh_token": "d7a8f9_new...",
+    "user_id": 1,
+    "display_name": "Wildan Frananda"
+  }
+}
+```
 
 ---
 

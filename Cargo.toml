@@ -37,3 +37,6 @@ chrono = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15"
 rust_decimal = { version = "1.41.0", features = ["serde-float"] }
 rust_decimal_macros = "1.40.0"
+
+# For API Integration
+reqwest = { version = "0.11", features = ["json"] }
