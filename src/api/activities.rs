@@ -8,6 +8,7 @@ use crate::engine::calculator::calculate_emission;
 use crate::engine::factors::get_emission_factor;
 use crate::models::activity::Category;
 use crate::models::activity::{ActivityRequest, ActivityResponse};
+use crate::services::gamification::evaluate_achivements;
 use crate::utils::error::ApiError;
 use crate::utils::jwt::Claims;
 use crate::DbPool;
@@ -88,6 +89,8 @@ pub async fn log_activity(
     tx.commit()
         .await
         .map_err(|_| ApiError::internal("Failed to commit transaction"))?;
+
+    let _ = evaluate_achivements(&pool.0, user_id, req.date).await;
 
     return Ok(json!({
         "status": "success",

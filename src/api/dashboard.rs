@@ -6,16 +6,34 @@ use rust_decimal::Decimal;
 use crate::models::dashboard::{DailySummaryResponse, HeatmapData, WeeklySummaryResponse};
 use crate::utils::error::ApiError;
 use crate::utils::jwt::Claims;
-use crate::DbPool;
+use crate::utils::rate_limiter::RateLimit;
+use crate::{DbPool, RedisPool};
 
 #[get("/daily?<date>")]
 pub async fn get_daily_summary(
     claims: Claims,
+    _limit: RateLimit,
     date: &str,
     pool: &State<DbPool>,
+    redis: &State<RedisPool>,
 ) -> Result<Value, ApiError> {
     let parsed_date = NaiveDate::parse_from_str(date, "%Y-%m-%d")
         .map_err(|_| ApiError::bad_request("Date Format invalid, use YYYY-MM-DD"))?;
+
+    let cache_key = format!("daily:{}:{}", claims.sub, parsed_date.to_string());
+    let mut conn = redis
+        .0
+        .get()
+        .await
+        .map_err(|_| ApiError::internal("RedisError"))?;
+
+    if let Ok(cached_data) = redis::cmd("GET")
+        .arg(&cache_key)
+        .query_async::<_, String>(&mut *conn)
+        .await
+    {
+        return Ok(serde_json::from_str(&cached_data).unwrap());
+    }
 
     let summary = sqlx::query_as!(
         DailySummaryResponse,
@@ -41,10 +59,20 @@ pub async fn get_daily_summary(
         is_green_day: true,
     });
 
-    return Ok(json!({
+    let json_data = json!({
         "status": "success",
         "data": response_data
-    }));
+    });
+
+    let _ = redis::cmd("SETEX")
+        .arg(&cache_key)
+        .arg(3600)
+        .arg(json_data.to_string())
+        .query_async::<_, ()>(&mut *conn)
+        .await
+        .ok();
+
+    return Ok(json_data);
 }
 
 #[get("/weekly?<end_date>")]

@@ -46,6 +46,8 @@ DATABASE_URL=postgres://tracker_user:tracker_pass@localhost:5432/carbon_tracker_
 JWT_SECRET=rahasia_untuk_development
 ROCKET_PORT=8000
 ROCKET_ADDRESS=0.0.0.0
+GROQ_API_KEY=gsk_....
+GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
 ```
 
 **Jalankan Database Lokal:**

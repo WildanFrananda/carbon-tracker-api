@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate rocket;
 
+use deadpool_redis::{Config, Runtime};
 use dotenvy::dotenv;
 use rocket::serde::json::{json, Value};
 use rocket::{get, launch, routes, Build, Rocket, State};
@@ -12,9 +13,11 @@ use std::env;
 mod api;
 mod engine;
 mod models;
+mod services;
 mod utils;
 
 pub struct DbPool(PgPool);
+pub struct RedisPool(deadpool_redis::Pool);
 
 #[get("/")]
 fn index() -> Value {
@@ -84,8 +87,12 @@ pub async fn build_rocket() -> Rocket<Build> {
 
     let pool = init_db().await.expect("Failed to initialize database pool");
 
+    let cfg = Config::from_url(env::var("REDIS_URL").unwrap());
+    let redis_pool = cfg.create_pool(Some(Runtime::Tokio1)).unwrap();
+
     rocket::build()
         .manage(DbPool(pool))
+        .manage(RedisPool(redis_pool))
         .mount("/", routes![index, health_check])
         .mount("/api/auth", api::auth::routes())
         .mount("/api/activities", api::activities::routes())

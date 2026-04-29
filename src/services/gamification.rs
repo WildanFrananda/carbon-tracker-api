@@ -3,8 +3,6 @@ use rust_decimal::Decimal;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::models::activity::Category;
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum BadgeType {
     FirstLog,
@@ -33,7 +31,7 @@ pub async fn evaluate_achivements(
 ) -> Result<(), String> {
     let has_first_log = check_badge_exists(pool, user_id, BadgeType::FirstLog).await?;
     if !has_first_log {
-        grand_badge(pool, user_id, BadgeType::FirstLog).await?;
+        grant_badge(pool, user_id, BadgeType::FirstLog).await?;
     }
 
     evaluate_streak(pool, user_id, date).await?;
@@ -70,7 +68,7 @@ async fn grant_badge(pool: &PgPool, user_id: Uuid, badge_type: BadgeType) -> Res
     .map_err(|_| "Failed to grant badge".to_string())?;
 
     println!("User {} earned badge: {}", user_id, badge_type.as_str());
-    return Ok();
+    return Ok(());
 }
 
 async fn evaluate_streak(
@@ -138,39 +136,6 @@ async fn evaluate_category_badges(
         }
 
         let threshold_transport = Decimal::new(10, 1);
-        if sum.transport_kg > Decimal::ZERO && sum.transport_kg < threshold_transport {
-            if !check_badge_exists(pool, user_id, BadgeType::LowCarbonCommuter).await? {
-                grant_badge(pool, user_id, BadgeType::LowCarbonCommuter).await?;
-            }
-        }
-    }
-
-    return Ok(());
-}
-
-async fn evaluate_category_badges(
-    pool: &PgPool,
-    user_id: Uuid,
-    date: NaiveDate,
-) -> Result<(), String> {
-    let summary = sqlx::query!(
-        "SELECT food_kg, transport_kg FROM daily_summaries WHERE user_id = $1 AND date = $2",
-        user_id,
-        date
-    )
-    .fetch_optional(pool)
-    .await
-    .map_err(|_| "Failed to fetch summary".to_string());
-
-    if let Some(sum) = summary {
-        let threshold_vaggie = Decimal::new(20, 1);
-        if sum.food_kg > Decimal::ZERO && sum.food_kg < threshold_vaggie {
-            if !check_badge_exists(pool, user_id, BadgeType::VeggieHero).await? {
-                grant_badge(pool, user_id, BadgeType::VeggieHero).await?;
-            }
-        }
-
-        let threshold_transport = Decimal::new(10, 1); // 1.0
         if sum.transport_kg > Decimal::ZERO && sum.transport_kg < threshold_transport {
             if !check_badge_exists(pool, user_id, BadgeType::LowCarbonCommuter).await? {
                 grant_badge(pool, user_id, BadgeType::LowCarbonCommuter).await?;
