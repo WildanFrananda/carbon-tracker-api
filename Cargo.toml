@@ -42,3 +42,6 @@ rust_decimal_macros = "1.40.0"
 
 # For API Integration
 reqwest = { version = "0.11", features = ["json"] }
+
+# For Email
+lettre = { version = "0.11", default-features = false, features = ["tokio1-rustls-tls", "smtp-transport", "builder", "hostname"] }

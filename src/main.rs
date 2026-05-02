@@ -99,6 +99,20 @@ fn internal_error() -> Value {
     })
 }
 
+#[get("/.well-known/assetlinks.json")]
+fn asset_links() -> rocket::serde::json::Value {
+    rocket::serde::json::json!([{
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.example.carbontracker",
+            "sha256_cert_fingerprints": [
+                "MASUKKAN_SHA256_CERTIFICATE_ANDA_DI_SINI"
+            ]
+        }
+    }])
+}
+
 pub async fn build_rocket() -> Rocket<Build> {
     dotenv().ok();
 
@@ -111,7 +125,7 @@ pub async fn build_rocket() -> Rocket<Build> {
         .manage(DbPool(pool))
         .manage(RedisPool(redis_pool))
         .attach(RateLimitFairing)
-        .mount("/", routes![index, health_check])
+        .mount("/", routes![index, health_check, asset_links])
         .mount("/errors", routes![to_many_request, device_id_err])
         .mount("/api/auth", api::auth::routes())
         .mount("/api/activities", api::activities::routes())

@@ -26,3 +26,19 @@ pub struct AuthResponse {
     pub user_id: Uuid,
     pub display_name: String,
 }
+
+#[derive(Deserialize)]
+pub struct ForgotPasswordRequest {
+    pub email: String
+}
+
+#[derive(Deserialize)]
+pub struct ResetPasswordRequest {
+    pub token: String,
+    pub new_password: String
+}
+
+#[derive(Deserialize)]
+pub struct GoogleLoginRequest {
+    pub id_token: String
+}
