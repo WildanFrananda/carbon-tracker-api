@@ -1,43 +1,49 @@
 use crate::utils::error::ApiError;
 use crate::RedisPool;
-use rocket::http::Status;
-use rocket::request::{self, FromRequest, Outcome, Request};
+use rocket::fairing::{Fairing, Info, Kind};
+use rocket::http::{Status, Method};
+use rocket::{Request, Data, Response, self};
+use rocket::http::uri::Origin;
 
-pub struct RateLimit;
+pub struct RateLimitFairing;
 
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for RateLimit {
-    type Error = ApiError;
+impl Fairing for RateLimitFairing {
+    fn info(&self) -> Info {
+        Info {
+            name: "Global Rate Limitter",
+            kind: Kind::Request
+        }
+    }
 
-    async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
-        let ip = req
-            .client_ip()
-            .map(|ip| ip.to_string())
-            .unwrap_or_else(|| "unknown".into());
-        let key = format!("ratelimit:{}", ip);
+    async fn on_request(&self, req: &mut Request<'_>, _data: &mut Data<'_>) {
+        if req.uri().path() == "/errors/429" {
+            return;
+        }
+
+        let device_id = match req.headers().get_one("X-Device-ID") {
+            Some(id) if id.len() >= 8 => id,
+            _ => {
+                req.set_method(Method::Get);
+
+                req.set_uri(Origin::parse("/errors/400").unwrap());
+                return;
+            }
+        };
 
         let redis_pool = match req.rocket().state::<RedisPool>() {
             Some(pool) => pool,
-            None => {
-                return Outcome::Error((
-                    Status::InternalServerError,
-                    ApiError::internal("Redis pool missing"),
-                ))
-            }
+            None => return
         };
 
         let mut conn = match redis_pool.0.get().await {
             Ok(c) => c,
-            Err(_) => {
-                return Outcome::Error((
-                    Status::InternalServerError,
-                    ApiError::internal("Redis connection failed"),
-                ))
-            }
+            Err(_) => return
         };
 
-        let limit = 100;
-        let window = 60;
+        let key = format!("ratelimit:{}", device_id);
+        let limit = 3;
+        let window = 1;
 
         let count: i64 = redis::cmd("INCR")
             .arg(&key)
@@ -55,14 +61,8 @@ impl<'r> FromRequest<'r> for RateLimit {
         }
 
         if count > limit {
-            return Outcome::Error((
-                Status::TooManyRequests,
-                ApiError {
-                    status: Status::TooManyRequests,
-                    message: "Too many requests. Please slow down bestie. fr.".into(),
-                },
-            ));
+            req.set_method(Method::Get);
+            req.set_uri(Origin::parse("/errors/429").unwrap());
         }
-        return Outcome::Success(RateLimit);
     }
 }

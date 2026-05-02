@@ -3,12 +3,15 @@ extern crate rocket;
 
 use deadpool_redis::{Config, Runtime};
 use dotenvy::dotenv;
+use rocket::http::Status;
 use rocket::serde::json::{json, Value};
 use rocket::{get, launch, routes, Build, Rocket, State};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::Error;
 use sqlx::PgPool;
 use std::env;
+
+use crate::utils::error::ApiError;
 
 mod api;
 mod engine;
@@ -48,6 +51,19 @@ async fn init_db() -> Result<PgPool, Error> {
         .max_connections(5)
         .connect(&database_url)
         .await;
+}
+
+#[get("/429")]
+fn to_many_request() -> Result<Value, ApiError> {
+    Err(ApiError {
+        status: Status::TooManyRequests,
+        message: "Global rate limit exceeded. please slow down".into()
+    })
+}
+
+#[get("/400")]
+fn device_id_err() -> Result<Value, ApiError> {
+    Err(ApiError::bad_request("X-Device-ID header is required"))
 }
 
 #[catch(400)]
@@ -94,6 +110,7 @@ pub async fn build_rocket() -> Rocket<Build> {
         .manage(DbPool(pool))
         .manage(RedisPool(redis_pool))
         .mount("/", routes![index, health_check])
+        .mount("/errors", routes![to_many_request, device_id_err])
         .mount("/api/auth", api::auth::routes())
         .mount("/api/activities", api::activities::routes())
         .mount("/api/dashboard", api::dashboard::routes())
