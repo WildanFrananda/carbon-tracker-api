@@ -27,10 +27,3 @@ pub struct HeatmapData {
     pub date: NaiveDate,
     pub total_emission: Decimal,
 }
-
-#[derive(Serialize)]
-pub struct RecommendationResponse {
-    pub dominant_category: String,
-    pub message: String,
-    pub actionable_tips: Vec<String>,
-}
