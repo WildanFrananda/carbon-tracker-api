@@ -1,8 +1,7 @@
-use crate::utils::error::ApiError;
 use crate::RedisPool;
 use rocket::fairing::{Fairing, Info, Kind};
-use rocket::http::{Status, Method};
-use rocket::{Request, Data, Response, self};
+use rocket::http::{Method};
+use rocket::{Request, Data, self};
 use rocket::http::uri::Origin;
 
 pub struct RateLimitFairing;

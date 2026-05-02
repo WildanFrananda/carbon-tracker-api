@@ -12,6 +12,7 @@ use sqlx::PgPool;
 use std::env;
 
 use crate::utils::error::ApiError;
+use crate::utils::rate_limiter::RateLimitFairing;
 
 mod api;
 mod engine;
@@ -109,6 +110,7 @@ pub async fn build_rocket() -> Rocket<Build> {
     rocket::build()
         .manage(DbPool(pool))
         .manage(RedisPool(redis_pool))
+        .attach(RateLimitFairing)
         .mount("/", routes![index, health_check])
         .mount("/errors", routes![to_many_request, device_id_err])
         .mount("/api/auth", api::auth::routes())

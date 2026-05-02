@@ -6,13 +6,11 @@ use rust_decimal::Decimal;
 use crate::models::dashboard::{DailySummaryResponse, HeatmapData, WeeklySummaryResponse};
 use crate::utils::error::ApiError;
 use crate::utils::jwt::Claims;
-use crate::utils::rate_limiter::RateLimit;
 use crate::{DbPool, RedisPool};
 
 #[get("/daily?<date>")]
 pub async fn get_daily_summary(
     claims: Claims,
-    _limit: RateLimit,
     date: &str,
     pool: &State<DbPool>,
     redis: &State<RedisPool>,
