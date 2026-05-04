@@ -26,4 +26,20 @@ mod tests {
 
         assert_eq!(result, dec!(5.4));
     }
+
+    #[test]
+    fn test_calculate_emission_zero() {
+        let quantity = dec!(0.0);
+        let factor = dec!(10.0);
+        let result = calculate_emission(quantity, factor);
+        assert_eq!(result, dec!(0.0));
+    }
+
+    #[test]
+    fn test_calculate_emission_negative() {
+        let quantity = dec!(-5.0);
+        let factor = dec!(2.0);
+        let result = calculate_emission(quantity, factor);
+        assert_eq!(result, dec!(-10.0));
+    }
 }

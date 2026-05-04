@@ -69,3 +69,44 @@ impl<'r> FromRequest<'r> for Claims {
         return Outcome::Error((Status::Unauthorized, ()));
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::env;
+
+    #[test]
+    fn test_generate_and_decode_access_token() {
+        env::set_var("JWT_SECRET", "supersecretkey");
+        let user_id = Uuid::new_v4();
+        
+        // Generate Token
+        let token_res = generate_access_token(user_id);
+        assert!(token_res.is_ok(), "Token generation should succeed");
+        
+        let token = token_res.unwrap();
+        
+        // Decode Token
+        let decoded = decode::<Claims>(
+            &token,
+            &DecodingKey::from_secret("supersecretkey".as_bytes()),
+            &Validation::default(),
+        );
+        
+        assert!(decoded.is_ok(), "Token decoding should succeed");
+        let claims = decoded.unwrap().claims;
+        assert_eq!(claims.sub, user_id, "User ID should match");
+        assert!(claims.exp > 0, "Expiration should be set");
+    }
+
+    #[test]
+    fn test_hash_refresh_token() {
+        let raw_token = "my-refresh-token";
+        let hashed = hash_refresh_token(raw_token);
+        
+        // Ensure it's not the same as raw token
+        assert_ne!(raw_token, hashed);
+        // Sha256 hex is 64 chars
+        assert_eq!(hashed.len(), 64);
+    }
+}

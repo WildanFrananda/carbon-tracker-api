@@ -24,7 +24,7 @@ impl BadgeType {
     }
 }
 
-pub async fn evaluate_achivements(
+pub async fn evaluate_achievements(
     pool: &PgPool,
     user_id: Uuid,
     date: NaiveDate,

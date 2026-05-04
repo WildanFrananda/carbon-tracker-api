@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::engine::calculator::calculate_emission;
 use crate::engine::factors::get_emission_factor;
-use crate::models::{ActivityRequest, ActivityResponse};
+use crate::models::activity::{ActivityRequest, ActivityResponse};
 use crate::services::gamification::evaluate_achievements;
 
 pub async fn log_activity_with_transaction(
